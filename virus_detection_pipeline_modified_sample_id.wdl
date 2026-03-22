@@ -8,11 +8,7 @@ workflow virus_detection_pipeline {
     File krakenuniq_db_tar
     File ref_genome
     File ref_genome_index
-    String output_base  # e.g., "gs://my-bucket/virus-results"
   }
-
-  # Create sample-specific output directory
-  String sample_output_dir = "~{output_base}/~{person_id}"
 
   call extract_reads {
     input: 
@@ -20,8 +16,7 @@ workflow virus_detection_pipeline {
       cram_uri = cram_uri, 
       cram_index_uri = cram_index_uri, 
       ref_genome = ref_genome, 
-      ref_genome_index = ref_genome_index,
-      output_dir = sample_output_dir
+      ref_genome_index = ref_genome_index
   }
 
   Boolean has_ebv = extract_reads.ebv_count > 0
@@ -31,16 +26,14 @@ workflow virus_detection_pipeline {
     call convert_to_fastq_ebv {
       input:
         person_id = person_id,
-        ebv_raw_reads = extract_reads.ebv_raw_reads,
-        output_dir = sample_output_dir
+        ebv_raw_reads = extract_reads.ebv_raw_reads
     }
 
     call qc_fastq_ebv {
       input:
         person_id = person_id,
         ebv_1 = convert_to_fastq_ebv.ebv_1,
-        ebv_2 = convert_to_fastq_ebv.ebv_2,
-        output_dir = sample_output_dir
+        ebv_2 = convert_to_fastq_ebv.ebv_2
     }
   }
    
@@ -49,16 +42,14 @@ workflow virus_detection_pipeline {
       input:
         person_id = person_id,
         unmapped_reads = extract_reads.unmapped_reads,
-        ref_genome = ref_genome,
-        output_dir = sample_output_dir
+        ref_genome = ref_genome
     }
     
     call qc_fastq_unmapped {
       input:
         person_id = person_id,
         unmapped_reads_1 = convert_to_fastq_unmapped.unmapped_reads_1,
-        unmapped_reads_2 = convert_to_fastq_unmapped.unmapped_reads_2,
-        output_dir = sample_output_dir
+        unmapped_reads_2 = convert_to_fastq_unmapped.unmapped_reads_2
     }
   }
   
@@ -70,8 +61,7 @@ workflow virus_detection_pipeline {
         reads_ebv2 = qc_fastq_ebv.ebv_2_qced,
         reads_unmapped1 = qc_fastq_unmapped.unmapped_reads_1_qced,
         reads_unmapped2 = qc_fastq_unmapped.unmapped_reads_2_qced,
-        krakenuniq_db = krakenuniq_db_tar,
-        output_dir = sample_output_dir
+        krakenuniq_db = krakenuniq_db_tar
     }
   }
   
@@ -80,8 +70,7 @@ workflow virus_detection_pipeline {
       person_id = person_id,
       ebv_filtered_reads = extract_reads.ebv_filtered_reads,
       report_ebv = run_krakenuniq.report_ebv,
-      report_unmapped = run_krakenuniq.report_unmapped,
-      output_dir = sample_output_dir
+      report_unmapped = run_krakenuniq.report_unmapped
   }
 
   output {
@@ -99,7 +88,6 @@ task extract_reads {
     File cram_index_uri
     File ref_genome
     File ref_genome_index
-    String output_dir
   }
     
   command <<<
@@ -118,9 +106,6 @@ task extract_reads {
     # 3) Count lines
     samtools view -c ebv_raw_reads.sam > ebv_count.txt
     samtools view -c unmapped_reads.cram > unmapped_count.txt
-    
-    # 4) Copy outputs to sample-specific folder
-    gsutil -m cp ~{person_id}_ebv_filtered_reads.tsv.gz ~{output_dir}/
   >>>
 
   output {
@@ -144,7 +129,6 @@ task convert_to_fastq_ebv {
   input {
     String person_id
     File ebv_raw_reads
-    String output_dir
   }
     
   command <<<
@@ -175,7 +159,6 @@ task qc_fastq_ebv {
     String person_id
     File ebv_1
     File ebv_2
-    String output_dir
   }
   
   command <<<
@@ -191,9 +174,6 @@ task qc_fastq_ebv {
       --thread $num_logical_processors \
       --json ~{person_id}_fastp_ebv.json \
       --html ~{person_id}_fastp_ebv.html
-      
-    # Copy QC reports to output directory
-    gsutil -m cp ~{person_id}_fastp_ebv.json ~{person_id}_fastp_ebv.html ~{output_dir}/
   >>>
   
   output {
@@ -215,7 +195,6 @@ task convert_to_fastq_unmapped {
     String person_id
     File unmapped_reads
     File ref_genome
-    String output_dir
   }
     
   command <<<
@@ -246,7 +225,6 @@ task qc_fastq_unmapped {
     String person_id
     File unmapped_reads_1
     File unmapped_reads_2
-    String output_dir
   }
   
   command <<<
@@ -262,9 +240,6 @@ task qc_fastq_unmapped {
       --thread $num_logical_processors \
       --json ~{person_id}_fastp_unmapped.json \
       --html ~{person_id}_fastp_unmapped.html
-      
-    # Copy QC reports to output directory
-    gsutil -m cp ~{person_id}_fastp_unmapped.json ~{person_id}_fastp_unmapped.html ~{output_dir}/
   >>>
   
   output {
@@ -289,7 +264,6 @@ task run_krakenuniq {
     File? reads_unmapped1
     File? reads_unmapped2
     File krakenuniq_db
-    String output_dir
   }
 
   command <<<
@@ -308,9 +282,6 @@ task run_krakenuniq {
         --report-file ~{person_id}_REPORTFILE_ebv.tsv \
         --output ~{person_id}_READCLASSIFICATION_ebv.tsv \
         ~{reads_ebv1} ~{reads_ebv2}
-        
-      # Copy to output directory
-      gsutil -m cp ~{person_id}_REPORTFILE_ebv.tsv ~{output_dir}/
     fi
     
     if [ -f "~{reads_unmapped1}" ] && [ -f "~{reads_unmapped2}" ]; then
@@ -323,9 +294,6 @@ task run_krakenuniq {
         --report-file ~{person_id}_REPORTFILE_unmapped.tsv \
         --output ~{person_id}_READCLASSIFICATION_unmapped.tsv \
         ~{reads_unmapped1} ~{reads_unmapped2}
-        
-      # Copy to output directory
-      gsutil -m cp ~{person_id}_REPORTFILE_unmapped.tsv ~{output_dir}/
     fi
   >>>
 
@@ -349,14 +317,10 @@ task workflow_complete_flag {
     File ebv_filtered_reads
     File? report_ebv
     File? report_unmapped
-    String output_dir
   }
 
   command <<<
     echo "Workflow completed successfully for sample ~{person_id}." > ~{person_id}_workflow_complete.txt
-    
-    # Copy completion flag to output directory
-    gsutil cp ~{person_id}_workflow_complete.txt ~{output_dir}/
   >>>
 
   output {
