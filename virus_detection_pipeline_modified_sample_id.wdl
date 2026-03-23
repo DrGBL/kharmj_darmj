@@ -306,7 +306,7 @@ task run_krakenuniq {
     docker: "monsieurbl/krakenuniq_pigz:v1"
     memory: "64 GB"
     cpu: 8
-    disks: "local-disk 50 SSD"
+    disks: "local-disk 100 SSD"
     preemptible: 1
   }
 }
