@@ -121,7 +121,7 @@ task extract_reads {
     memory: "4 GB"
     cpu: 1
     disks: "local-disk 50 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
 
@@ -150,7 +150,7 @@ task convert_to_fastq_ebv {
     memory: "4 GB"
     cpu: 1
     disks: "local-disk 10 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
 
@@ -186,7 +186,7 @@ task qc_fastq_ebv {
     memory: "4 GB"
     cpu: 2
     disks: "local-disk 10 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
 
@@ -216,7 +216,7 @@ task convert_to_fastq_unmapped {
     memory: "4 GB"
     cpu: 1
     disks: "local-disk 20 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
 
@@ -252,7 +252,7 @@ task qc_fastq_unmapped {
     memory: "4 GB"
     cpu: 2
     disks: "local-disk 20 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
 
@@ -307,7 +307,7 @@ task run_krakenuniq {
     memory: "64 GB"
     cpu: 8
     disks: "local-disk 100 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
 
@@ -332,6 +332,6 @@ task workflow_complete_flag {
     memory: "1 GB"
     cpu: 1
     disks: "local-disk 1 SSD"
-    preemptible: 1
+    preemptible: 10
   }
 }
