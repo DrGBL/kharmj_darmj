@@ -120,7 +120,7 @@ task extract_reads {
     docker: "mgibio/samtools:v1.21-noble"
     memory: "4 GB"
     cpu: 1
-    disks: "local-disk 50 LOCAL"
+    disks: "HDD-disk 50 HDD"
     preemptible: 10
   }
 }
@@ -149,7 +149,7 @@ task convert_to_fastq_ebv {
     docker: "mgibio/samtools:v1.21-noble"
     memory: "4 GB"
     cpu: 1
-    disks: "local-disk 10 LOCAL"
+    disks: "local-disk 10 HDD"
     preemptible: 10
   }
 }
@@ -185,7 +185,7 @@ task qc_fastq_ebv {
     docker: "mgibio/fastp:v0.23.4-noble"
     memory: "4 GB"
     cpu: 2
-    disks: "local-disk 10 LOCAL"
+    disks: "local-disk 10 HDD"
     preemptible: 10
   }
 }
@@ -215,7 +215,7 @@ task convert_to_fastq_unmapped {
     docker: "mgibio/samtools:v1.21-noble"
     memory: "4 GB"
     cpu: 1
-    disks: "local-disk 20 LOCAL"
+    disks: "local-disk 20 HDD"
     preemptible: 10
   }
 }
@@ -251,7 +251,7 @@ task qc_fastq_unmapped {
     docker: "mgibio/fastp:v0.23.4-noble"
     memory: "4 GB"
     cpu: 2
-    disks: "local-disk 20 LOCAL"
+    disks: "local-disk 20 HDD"
     preemptible: 10
   }
 }
@@ -306,7 +306,7 @@ task run_krakenuniq {
     docker: "monsieurbl/krakenuniq_pigz:v1"
     memory: "64 GB"
     cpu: 8
-    disks: "local-disk 100 LOCAL"
+    disks: "local-disk 100 HDD"
     preemptible: 10
   }
 }
