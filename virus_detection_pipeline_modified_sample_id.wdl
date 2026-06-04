@@ -120,7 +120,7 @@ task extract_reads {
     docker: "mgibio/samtools:v1.21-noble"
     memory: "4 GB"
     cpu: 1
-    disks: "HDD-disk 50 HDD"
+    disks: "local-disk 50 HDD"
     preemptible: 10
   }
 }
